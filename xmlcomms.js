@@ -27,23 +27,23 @@ function getEditUrl()
 function updateUserFeedback(string, redIcon)
 {
     console.log("updateUserFeedback: "+string);
-    chrome.browserAction.setTitle({title:string});
+    chrome.pageAction.setTitle({title:string});
     if (redIcon) {
-	chrome.browserAction.setIcon({path:"emacs23-16x16-red.png"});
+	chrome.pageAction.setIcon({path:"emacs23-16x16-red.png"});
     } else {
-    	chrome.browserAction.setIcon({path:"emacs23-16x16.png"});
+    	chrome.pageAction.setIcon({path:"emacs23-16x16.png"});
     }
 }
-    
-// Initial message
-updateUserFeedback("Awaiting edit request", false);
 
-// Called when the user clicks on the browser action.
+// updateUserFeedback can be only called when the page action icon is shown
+//updateUserFeedback("Awaiting edit request", false);
+
+// Called when the user clicks on the page action.
 //    
 // When clicked we send a message to the current active tab's
 // content script. It will then use heuristics to decide which text
 // area to spawn an edit request for.
-chrome.browserAction.onClicked.addListener(function(tab) {
+chrome.pageAction.onClicked.addListener(function(tab) {
   
   var find_msg = {
       msg: "find_edit"
@@ -141,6 +141,8 @@ function localMessageHandler(port)
 	    handleContentMessages(msg, port);
 	} else if (msg.msg == "test") {
 	    handleTestMessages(msg, port);
+	} else if (msg.msg == "icon") {
+	    chrome.pageAction.show(port.sender.tab.id);
 	}
     });
 }

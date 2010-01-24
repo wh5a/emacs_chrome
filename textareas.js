@@ -167,6 +167,9 @@ function findTextAreas() {
 	tagTextArea(text);
     }
 
+    if (texts.length > 0)
+      port.postMessage({msg:"icon"});
+
     return true;
 }
 
