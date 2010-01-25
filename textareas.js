@@ -41,7 +41,6 @@ function tagTextArea(text)
     // Set attribute of text box so we can find it
     var edit_id = "eta_"+page_edit_id;
     text.setAttribute("edit_id", edit_id);
-    text.addEventListener('focus', setFocused);
     text.addEventListener('dblclick', function(){sendTextArea(this);});
 
     // Add a clickable edit img to trigger edit events
@@ -98,30 +97,11 @@ function sendTextArea(text) {
     port.postMessage(edit_msg);
 }
 
-/*
-  Handle focused text area
-*/
-(function(){
-     var focusedEdit = null;
-
-     findActiveTextArea = function() {
-	 if (focusedEdit) {
-	     sendTextArea(focusedEdit);
-	 } 
-     };
-
-     setFocused = function(){
-	 focusedEdit = this;		
-     };
- })();
-
 /* Message handling multiplexer */
 function localMessageHandler(msg, port) {
     // What was the bidding?
     var cmd = msg.msg;
-    if (cmd == "find_edit") {
-	findActiveTextArea();
-    } else if (cmd == "update") {
+    if (cmd == "update") {
 	var id = msg.id;
 	var content = msg.text;
 	updateTextArea(id, content);

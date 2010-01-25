@@ -26,6 +26,7 @@ function getEditUrl()
  */
 function updateUserFeedback(string, redIcon)
 {
+  return;
     console.log("updateUserFeedback: "+string);
     chrome.browserAction.setTitle({title:string});
     if (redIcon) {
@@ -35,25 +36,6 @@ function updateUserFeedback(string, redIcon)
     }
 }
     
-// Initial message
-updateUserFeedback("Awaiting edit request", false);
-
-// Called when the user clicks on the browser action.
-//    
-// When clicked we send a message to the current active tab's
-// content script. It will then use heuristics to decide which text
-// area to spawn an edit request for.
-chrome.browserAction.onClicked.addListener(function(tab) {
-  
-  var find_msg = {
-      msg: "find_edit"
-  };
-  var tab_port = chrome.tabs.connect(tab.id);
-  
-  tab_port.postMessage(find_msg);
-  updateUserFeedback("sent request to content script", false);
-});
-
 // Handle and edit request coming from the content page script
 //
 // Package up the text to be edited and send it to the edit server
@@ -141,7 +123,7 @@ function localMessageHandler(port)
 {
     port.onMessage.addListener(function(msg, port) {
         if (msg.msg == "edit") {
-	    handleContentMessages(msg, port);
+	handleContentMessages(msg,port);
 	} else if (msg.msg == "test") {
 	    handleTestMessages(msg, port);
 	}
