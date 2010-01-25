@@ -26,6 +26,8 @@
 ;(setq debug-on-error 't)
 ;(setq edebug-all-defs 't)
 
+(require 'json)
+
 ;; Customization
 (defcustom edit-server-port 9292
   "Local port the edit server listens to."
@@ -75,12 +77,6 @@ Current buffer holds the text that is about to be sent back to the client."
 
 (defconst edit-server-new-frame-title "Emacs TEXTAREA"
   "Template name of the emacs frame's title.")
-
-(defconst edit-server-new-frame-width 80
-  "The emacs frame's width.")
-
-(defconst edit-server-new-frame-height 25
-  "The emacs frame's height.")
 
 (defvar edit-server-proc 'nil
   "Network process associated with the current edit, made local when
@@ -264,9 +260,19 @@ If `edit-server-verbose' is non-nil, then STRING is also echoed to the message l
 (defun edit-server-create-edit-buffer(proc)
   "Create an edit buffer, place content in it and save the network
   process for the final call back"
-  (let ((buffer (generate-new-buffer edit-server-edit-buffer-name)))
-    (copy-to-buffer buffer (point-min) (point-max))
+  (let* ((buffer (generate-new-buffer edit-server-edit-buffer-name))
+          (parsed-msg (progn (goto-char (point-min)) (json-read)))
+          (text (cdr (assoc 'text parsed-msg)))
+          (height (cdr (assoc 'height parsed-msg)))
+          (width (cdr (assoc 'width parsed-msg)))
+          (char-height (/ height (frame-char-height)))
+          (char-width (/ width (frame-char-width)))
+          )
+    ; Put the text back in the buffer, drop all json noises
+    (delete-region (point-min) (point-max))
+    (insert text)
     (with-current-buffer buffer
+      (insert text)
       (not-modified)
       (edit-server-text-mode)
       (add-hook 'kill-buffer-hook 'edit-server-abort* nil t)
@@ -276,8 +282,8 @@ If `edit-server-verbose' is non-nil, then STRING is also echoed to the message l
            (if edit-server-new-frame
                (make-frame-on-display (getenv "DISPLAY")
                  `((name . ,edit-server-new-frame-title)
-                   (width . ,edit-server-new-frame-width)
-                   (height . ,edit-server-new-frame-height)
+                   (width . ,char-width)
+                   (height . ,char-height)
                    (minibuffer . ,edit-server-new-frame-minibuffer)
                    (menu-bar-lines . ,edit-server-new-frame-menu-bar)))
              nil))

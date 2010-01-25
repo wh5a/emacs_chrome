@@ -19,6 +19,18 @@ at:
 As the edit server concept is fairly simple we will try and keep them
 compatible with each other.
 
+Protocol
+=============================
+
+We extend the plain-text message passing to JSON-encoded message
+passing. By using the more expressive JSON representation, the client
+(Chrome) and the edit server can communicate richer information.
+
+An example use of this protocol is to give size hints to the editor,
+so that it mimics the text box better. With a powerful window manager
+(e.g. XMonad), the editor can pop up near the mouse, giving an
+in-browser feel, only with a more powerful editor.
+
 Customizing the look of Emacs
 =============================
 

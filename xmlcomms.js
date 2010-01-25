@@ -59,10 +59,9 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 // Package up the text to be edited and send it to the edit server
 function handleContentMessages(msg, tab_port)
 {
-    console.log("handleContentMessages called:"+JSON.stringify(msg));
+//    console.log("handleContentMessages called:"+JSON.stringify(msg));
     var cmd = msg.msg;
     var id = msg.id;
-    var text = msg.text;
 
     var xhr = new XMLHttpRequest();
     var url = getEditUrl() + cmd + "/" + id;
@@ -100,7 +99,11 @@ function handleContentMessages(msg, tab_port)
     updateUserFeedback("Edit request sent", false);
 
     xhr.setRequestHeader("Content-type", "text/plain");
-    xhr.send(text);
+    xhr.send(JSON.stringify({
+      height: msg.clientHeight,
+      width: msg.clientWidth,
+      text: msg.text
+    }));
 }
 
 // Handle and edit request coming from the content page script

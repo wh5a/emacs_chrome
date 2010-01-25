@@ -88,6 +88,10 @@ function sendTextArea(text) {
     // And spawn the request
     var edit_msg = {
 	msg: "edit",
+        clientHeight: text.clientHeight,
+        clientWidth: text.clientWidth,
+//        scrollHeight: text.scrollHeight,
+//        scrollWidth: text.scrollWidth,
 	text: text.value,
 	id: text_edit_id
     };
