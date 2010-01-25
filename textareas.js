@@ -55,7 +55,7 @@ function tagTextArea(text)
     image.src = editImgURL;
     text.parentNode.insertBefore(image, text.nextSibling);
     image.addEventListener('click', editTextArea, false);
-    image.addEventListener('mouseover', function(){this.style.cursor='pointer';});
+    image.style.cursor='pointer';
 
     // Inc
     page_edit_id = page_edit_id + 1;
