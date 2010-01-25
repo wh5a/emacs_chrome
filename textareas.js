@@ -42,6 +42,11 @@ function tagTextArea(text)
     var edit_id = "eta_"+page_edit_id;
     text.setAttribute("edit_id", edit_id);
     text.addEventListener('dblclick', function(){sendTextArea(this);});
+    text.addEventListener('keydown', function (e) {
+      // Alt-Enter
+      if (e.altKey && e.keyCode == 13)
+        sendTextArea(this);
+    });
 
     // Add a clickable edit img to trigger edit events
     var image = document.createElement('img');
