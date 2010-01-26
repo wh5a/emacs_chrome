@@ -265,6 +265,7 @@ If `edit-server-verbose' is non-nil, then STRING is also echoed to the message l
           (text (cdr (assoc 'text parsed-msg)))
           (height (cdr (assoc 'height parsed-msg)))
           (width (cdr (assoc 'width parsed-msg)))
+          (cursor (+ 1 (cdr (assoc 'cursor parsed-msg))))
           (char-height (/ height (frame-char-height)))
           (char-width (/ width (frame-char-width)))
           )
@@ -274,6 +275,7 @@ If `edit-server-verbose' is non-nil, then STRING is also echoed to the message l
     (with-current-buffer buffer
       (insert text)
       (not-modified)
+      (goto-char cursor)
       (edit-server-text-mode)
       (add-hook 'kill-buffer-hook 'edit-server-abort* nil t)
       (buffer-enable-undo)

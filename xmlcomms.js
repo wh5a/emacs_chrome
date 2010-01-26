@@ -84,6 +84,7 @@ function handleContentMessages(msg, tab_port)
     xhr.send(JSON.stringify({
       height: msg.clientHeight,
       width: msg.clientWidth,
+      cursor: msg.selectionStart,
       text: msg.text
     }));
 }

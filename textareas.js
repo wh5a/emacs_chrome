@@ -98,6 +98,7 @@ function sendTextArea(text) {
 	msg: "edit",
         clientHeight: text.clientHeight,
         clientWidth: text.clientWidth,
+        selectionStart: text.selectionStart,
 //        scrollHeight: text.scrollHeight,
 //        scrollWidth: text.scrollWidth,
 	text: text.value,
