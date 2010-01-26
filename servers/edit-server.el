@@ -111,7 +111,7 @@ Depending on the character encoding, may be different from the buffer length.")
 ; define a special (derived) mode for handling editing of text areas.
 ;
 
-(define-derived-mode edit-server-text-mode text-mode "Edit Server Text Mode"
+(define-derived-mode edit-server-text-mode nil "Edit Server Text Mode"
   "A derived version of text-mode with a few common Emacs keystrokes
 rebound to more functions that can deal with the response to the
 edit-server request.
