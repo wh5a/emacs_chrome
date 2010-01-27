@@ -31,9 +31,9 @@ function tagTextArea(text)
 	return;
     }
 
-    // Is this reliable for Ajax? That is, can we always get the correct size?
-    if (text.clientHeight == 0 || text.clientWidth == 0)
-      return;
+    // The size can change with no event for us to capture
+//    if (text.clientHeight == 0 || text.clientWidth == 0)
+//      return;
 
     // Also skip textareas we have already tagged
     var existing_id = text.getAttribute("edit_id");
