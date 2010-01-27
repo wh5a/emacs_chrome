@@ -69,6 +69,9 @@ function tagTextArea(text)
  updateTextArea
 
  Called when we want to update the text area with our updated text
+
+ TODO: Currently we don't always have unique ids (test: groups.google.com)
+ FIXME: We're updating *all* textareas with the same id.
 */
 function updateTextArea(id, content) {
     var texts = document.getElementsByTagName('textarea');
@@ -148,6 +151,8 @@ function editTextArea(event) {
 
 	if (text_edit_id == edit_id)
 	{
+            // TODO: Currently we don't always have unique ids (test: groups.google.com)
+            // FIXME: We're send the *first* matching textarea's content
 	    sendTextArea(text);
 	}
     }
