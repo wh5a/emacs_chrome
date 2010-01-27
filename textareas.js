@@ -175,6 +175,17 @@ function findTextAreas() {
     return true;
 }
 
+function ajaxFindTextAreas(doc) {
+    if (!doc.getElementsByTagName)
+      return;
+    var texts = doc.getElementsByTagName('textarea');
+    if (!texts)
+      return;
+
+    for (var i=0; i<texts.length; i++)
+      tagTextArea(texts[i]);
+}
+
 /*
  We want to search for text areas when the page is first loaded as well
  as after any additional XHR events made by the page which may load
@@ -185,7 +196,7 @@ function findTextAreas() {
 findTextAreas();
 
 /* called upon further document mods */
-document.addEventListener("DOMNodeInserted", (function () {
-    findTextAreas();
+document.addEventListener("DOMNodeInserted", (function (ev) {
+    ajaxFindTextAreas(ev.target);
     return true;
 }), false);
