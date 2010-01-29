@@ -13,7 +13,72 @@
 var editImgURL = chrome.extension.getURL("gumdrop.png");
 var port = chrome.extension.connect();
 var page_edit_id = 0;
+var pageTextAreas = [];
+var findingTextAreas = false;
 
+function updateEvent(thing, event, listener)
+{
+    // First remove the event so we don't stack up multiple ones
+    try {
+	thing && thing.removeEventListener(event, listener);
+    } catch (err) {
+	console.log ("event listener not registered for "+thing + "/"+event);
+    }
+    
+    // And the update again
+    if (thing) {
+	thing.addEventListener(event, listener, false);
+    }
+}
+ 
+/*
+  textAreaTracker
+
+  This object wraps up all the information about a given text area on the page.
+  It allows us to update the listeners and query stuff from one central location.
+*/
+
+function textAreaTracker(text)
+{
+    this.edit_id = "eta_"+page_edit_id;
+    page_edit_id = page_edit_id + 1;
+    this.text = text;
+    this.text.setAttribute("edit_id", this.edit_id);
+
+    // The text areas event handlers we attach
+    this.focusListener = setFocused;
+    this.dblclickListener = function(){sendTextArea(this);};
+    thi.keydownListener = function (e) {
+      // Alt-Enter
+      if (e.altKey && e.keyCode == 13)
+        sendTextArea(this);
+    };
+    this.text.addEventListener('focus',  this.focusListener);
+    this.text.addEventListener('dblclick', this.dblclickListener);
+    this.text.addEventListener('keydown', this.keydownListener);  
+    
+    // The img 
+    this.image = document.createElement('img');
+    this.image.style.cursor='pointer';
+    this.image.setAttribute("edit_id", this.edit_id);
+    this.image.src = editImgURL;
+
+    this.clickListener = editTextArea;
+    this.image.addEventListener('click', this.clickListener, false);
+
+    this.text.parentNode.insertBefore(this.image, text.nextSibling);
+
+    // The update function removes and re-adds events
+    this.updateEvents = function()
+    {
+	updateEvent(this.text, 'focus', this.focusListener);
+	updateEvent(this.text, 'dblclick', this.dblclickListener);
+        updateEvent(this.text, 'keydown', this.keydownListener);  
+	updateEvent(this.image, 'click', this.clickListener);
+    }
+}
+
+ 
 /*
   tagTextArea
 
@@ -31,34 +96,44 @@ function tagTextArea(text)
 	return;
     }
 
-    // Also skip textareas we have already tagged
     var existing_id = text.getAttribute("edit_id");
-    if (existing_id)
+    if (!existing_id)
     {
-	return;
+	// tag it
+	var tat = new textAreaTracker(text);
+	pageTextAreas.push(tat);
+    } else {
+	// Even though this text has an edit_id it might not actually be the
+	// text we think it is. If the textAreaTracker.text doesn't match then
+	// we should tag this with something different
+	for (var i=0; i<pageTextAreas.length; i++) {
+	    var existing_area = pageTextAreas[i];
+	    if ( (existing_area.edit_id == existing_id) &&
+		 (existing_area.text != text ) )
+	    {
+		console.log("found a duplicate id!");
+		// OK, first things first, find any images that think
+		// they are associated with a text area and remove them
+		siblings = text.parentElement.childNodes;
+		console.log("has "+siblings.length+ " siblings");
+
+		for (var j=0; j<siblings.length; j++) {
+		    if (! (siblings[j].getAttribute == undefined) ) {
+			console.log("B doing sibling: "+siblings[j].toString());
+		
+			    if ( (siblings[j].getAttribute("edit_id") == existing_area.edit_id) &&
+				 (siblings[j].toString() == "[object HTMLImageElement]") ) {
+				console.log("yoink");
+				siblings[j].parentElement.removeChild(siblings[j]);
+			    }
+			}
+		}
+		
+		// And create a new tracked text area
+		new textAreaTracker(text);
+	    }
+	}
     }
-
-    // Set attribute of text box so we can find it
-    var edit_id = "eta_"+page_edit_id;
-    text.setAttribute("edit_id", edit_id);
-    text.addEventListener('focus', setFocused);
-    text.addEventListener('dblclick', function(){sendTextArea(this);});
-    text.addEventListener('keydown', function (e) {
-      // Alt-Enter
-      if (e.altKey && e.keyCode == 13)
-        sendTextArea(this);
-    });
-
-    // Add a clickable edit img to trigger edit events
-    var image = document.createElement('img');
-    image.setAttribute("edit_id", edit_id);
-    image.src = editImgURL;
-    text.parentNode.insertBefore(image, text.nextSibling);
-    image.addEventListener('click', editTextArea, false);
-    image.style.cursor='pointer';
-
-    // Inc
-    page_edit_id = page_edit_id + 1;
 }
   
 
@@ -66,9 +141,6 @@ function tagTextArea(text)
  updateTextArea
 
  Called when we want to update the text area with our updated text
-
- TODO: Currently we don't always have unique ids (test: groups.google.com)
- FIXME: We're updating *all* textareas with the same id.
 */
 function updateTextArea(id, content) {
     var texts = document.getElementsByTagName('textarea');
@@ -162,21 +234,54 @@ function editTextArea(event) {
 
 	if (text_edit_id == edit_id)
 	{
-            // TODO: Currently we don't always have unique ids (test: groups.google.com)
-            // FIXME: We're send the *first* matching textarea's content
 	    sendTextArea(text);
 	}
     }
 }
 
-function findTextAreas() {
-    var texts = document.getElementsByTagName('textarea');
+function findTextAreasInDocument(doc) {
+    var texts;
+    try {
+	texts = doc.getElementsByTagName('textarea');
+	for (var i=0; i<texts.length; i++) {
+	    tagTextArea(texts[i]);
+	}
+    } catch (err) {
+	// it seems some (I)FRAMES have undefined contentDocuments
+	console.log("findTextAreasInDocument: failed with "+err);
+    }
+}
 
-    for (var i=0; i<texts.length; i++) {
-	var text = texts[i];
-	tagTextArea(text);
+function findTextAreas() {
+
+    // Don't run through this if already finding stuff, lest we trigger events
+    if (findingTextAreas)
+	return;
+
+    findingTextAreas = true;
+
+    findTextAreasInDocument(document);
+
+    // IFRAMEs
+    var iframes = document.getElementsByTagName('iframe');
+    for (i = 0; i < iframes.length; i++) {
+	findTextAreasInDocument(iframes[i].contentDocument);
     }
 
+    // FRAMEs
+    var frames = document.getElementsByTagName('frame');
+    for (i = 0; i < frames.length; i++) {
+	findTextAreasInDocument(frames[i].contentDocument);
+    }
+
+    /* This may not be needed
+    // And finally lets update any events and ensure they have event listeners
+    for (var i=0; i<pageTextAreas.length; i++) {
+	pageTextAreas[i].updateEvents();
+    }
+    */
+
+    findingTextAreas = false;
     return true;
 }
 
