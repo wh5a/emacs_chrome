@@ -169,6 +169,7 @@ function findTextAreas() {
     return true;
 }
 
+/*
 function ajaxFindTextAreas(doc) {
     if (!doc.getElementsByTagName)
       return;
@@ -179,6 +180,7 @@ function ajaxFindTextAreas(doc) {
     for (var i=0; i<texts.length; i++)
       tagTextArea(texts[i]);
 }
+*/
 
 /*
  We want to search for text areas when the page is first loaded as well
@@ -191,6 +193,7 @@ findTextAreas();
 
 /* called upon further document mods */
 document.addEventListener("DOMNodeInserted", (function (ev) {
-    ajaxFindTextAreas(ev.target);
+//    ajaxFindTextAreas(ev.target);
+    findTextAreas();
     return true;
 }), false);
